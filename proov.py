@@ -23,19 +23,27 @@ color = (255,255,255)
 position = (0, 0)
 rect_color = (41, 219, 130)
 
-window_w, window_h = 800, 600
+#Gravitatsioon
+jumping = False
+
+y_grav = 1
+jump_height = 20
+y_velocity = jump_height
+
+window_w, window_h = 1100, 720
+pygame.display.set_caption(title ="Teppo reis koju") 
+window = pygame.display.set_mode((window_w,window_h)) 
+clock = pygame.time.Clock()
 
 #Player parameetrid
 player_width, player_height = 100, 100
 player_x, player_y = window_w // 4, window_h // 4
 player_speed = 10
+player = pygame.draw.rect(window, color, (player_x, player_y, player_width, player_height))
 
-pygame.display.set_caption(title ="Teppo reis koju") 
-window = pygame.display.set_mode((window_w,window_h)) 
 
 image = pygame.image.load("hampter.jpg")
 
-clock = pygame.time.Clock()
 
 exit = False
 while not exit:
@@ -47,8 +55,6 @@ while not exit:
         if event.type == pygame.QUIT:
             exit = True
 
-    #Player
-    pygame.draw.rect(window, color, (player_x, player_y, player_width, player_height))
 
     #Player input
     keys = pygame.key.get_pressed()
@@ -61,6 +67,17 @@ while not exit:
     if keys[pygame.K_DOWN]:
         player_y += player_speed
 
+    if keys[pygame.K_SPACE]:
+        jumping = True
+    
+    if jumping:
+        player_y -= y_velocity
+        y_velocity -= y_grav
+        if y_velocity < -jump_height:
+            jumping = False
+            y_velocity = jump_height
+
+
     #Collision detection
     if player_x < 0:
         player_x = 0
@@ -71,7 +88,7 @@ while not exit:
     if player_y > window_h - player_height:
         player_y = window_h - player_height
 
-    
+
     # Ristkülik
     pygame.draw.rect(window, rect_color, pygame.Rect(250, 10, 100, 200))
 
