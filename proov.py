@@ -1,18 +1,3 @@
-################################################
-# Programmeerimine I
-# 2024/2025 sügissemester
-#
-# Projekt
-# Teema:
-#
-#
-# Autorid: Lisbeth Lepp ja Martti Virnas
-#
-# mõningane eeskuju:
-#
-# Lisakommentaar (nt käivitusjuhend):
-#
-##################################################
 
 import pygame
 
@@ -67,15 +52,15 @@ while not exit:
     if keys[pygame.K_DOWN]:
         player_y += player_speed
 
-    if keys[pygame.K_SPACE]:
-        jumping = True
+    # if keys[pygame.K_SPACE]:
+    #     jumping = True
     
-    if jumping:
-        player_y -= y_velocity
-        y_velocity -= y_grav
-        if y_velocity < -jump_height:
-            jumping = False
-            y_velocity = jump_height
+    # if jumping:
+    #     player_y -= y_velocity
+    #     y_velocity -= y_grav
+    #     if y_velocity < -jump_height:
+    #         jumping = False
+    #         y_velocity = jump_height
 
 
     #Collision detection
