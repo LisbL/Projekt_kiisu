@@ -12,7 +12,7 @@ test_surface = pygame.image.load("materjalid/Forest/Background.png").convert() #
 text_surface = test_font.render("Teppo Reis Koju", False, "White")
 
 black_cat_surface = pygame.image.load("tegelased/Black cat/Cat-2-Sitting.png").convert_alpha()
-cat_image_size = (200, 200)
+cat_image_size = (100,100)
 black_cat_surface = pygame.transform.scale(black_cat_surface, cat_image_size)
 black_cat_x_pos = -150
 
@@ -26,7 +26,7 @@ while True:
     screen.blit(text_surface,(225,70))
     black_cat_x_pos += 2
     if black_cat_x_pos > 900: black_cat_x_pos = -150
-    screen.blit(black_cat_surface,(black_cat_x_pos,400))
+    screen.blit(black_cat_surface,(black_cat_x_pos,475))
 
     pygame.display.update()
     clock.tick(60)
