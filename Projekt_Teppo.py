@@ -55,51 +55,68 @@ def draw_BG():
         speed = 1
         for i in BG_images:
             WINDOW.blit(i, ((x*BG_width) - scroll * speed, 0))#Pildid laevad üksteise peale
-            speed += 0.02
+            speed += 0.000000000000000000000000000000000000000000000000001
 def draw_ground():
     for x in range(15):
         WINDOW.blit(ground_image, ((x*ground_width) - scroll * 2.2, SCREEN_HEIGHT - ground_height))
 
+#Animation list
+animation_list = []
+animation_steps = [4, 6, 3, 4, 7]
+action = 0
+last_update = pygame.time.get_ticks()
+animation_cooldown = 75
+frame = 0
+step_counter = 0
 
-#Sprite frame
-frame_0 = sprite_sheet.get_image(0, 24, 24, 2, BLACK)
-frame_1 = sprite_sheet.get_image(1, 24, 24, 2, BLACK)
-frame_2 = sprite_sheet.get_image(2, 24, 24, 2, BLACK)
-frame_3 = sprite_sheet.get_image(3, 24, 24, 2, BLACK)
+for animation in animation_steps:
+    temp_img_list = []
+    for _ in range(animation):
+        temp_img_list.append(sprite_sheet.get_image(step_counter, 24, 24, 2, BLACK))
+        step_counter += 1
+    animation_list.append(temp_img_list)
 
 #PÕHIPROGRAMM
-def main(window):
-    global scroll
-    #Mängu tsükkel
-    running = True
-    while running:
-        #Tausta laadimiseks
-        draw_BG()
-        draw_ground()
+#Mängu tsükkel
+running = True
+while running:
+    #Tausta laadimiseks
+    draw_BG()
+    draw_ground()
 
-        #Display image frame
-        WINDOW.blit(frame_0, (0,0))
-        WINDOW.blit(frame_1, (40,0))
-        WINDOW.blit(frame_2, (80,0))
-        WINDOW.blit(frame_3, (120,0))
+    #Update animation
+    current_time = pygame.time.get_ticks()
+    if current_time - last_update >= animation_cooldown:
+        frame += 1
+        last_update = current_time
+        if frame >= len(animation_list[action]):
+            frame = 0
 
-
-        #Juhul kui tahame mängu sulgeda
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-        pygame.display.update()
-        clock.tick(FPS)
-
-        #keypresses
-        key = pygame.key.get_pressed()
-        if key[pygame.K_LEFT] and scroll > 0:
-            scroll -= 3
-        if key[pygame.K_RIGHT] and scroll < 600:
-            scroll += 3
-
-    pygame.quit()
+    #Display image frame
+    WINDOW.blit(animation_list[action][frame], (50,0))
 
 
-if __name__ == "__main__":
-    main(WINDOW)
+    #Juhul kui tahame mängu sulgeda
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_DOWN and action > 0:
+                action -= 1
+                frame = 0
+            if event.key == pygame.K_UP and action < len(animation_list) - 1:
+                action += 1
+                frame = 0
+
+    pygame.display.update()
+    clock.tick(FPS)
+
+    #keypresses
+    key = pygame.key.get_pressed()
+    if key[pygame.K_LEFT] and scroll > 0:
+        scroll -= 3
+    if key[pygame.K_RIGHT] and scroll < 600:
+        scroll += 3
+
+pygame.quit()
