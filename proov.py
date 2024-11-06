@@ -4,7 +4,7 @@ import pygame
 pygame.init()
 
 #ristkülik
-color = (255,255,255)
+color = (50,50,50)
 position = (0, 0)
 rect_color = (41, 219, 130)
 
@@ -27,14 +27,12 @@ player_speed = 10
 player = pygame.draw.rect(window, color, (player_x, player_y, player_width, player_height))
 
 
-image = pygame.image.load("hampter.jpg")
 
 
 exit = False
 while not exit:
     #Akna kujundamine
     window.fill(color)
-    window.blit(image, dest= position)
     #pygame.event.get() # tagastab aktiivsete sündmuste loendi
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
