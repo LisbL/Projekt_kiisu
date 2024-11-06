@@ -5,8 +5,8 @@ import button
 
 pygame.init()
 
-screen_width = 800
-screen_height = int(screen_width*0.8)
+screen_width = 960
+screen_height = 540
 
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Teppo reis koju")
@@ -19,8 +19,8 @@ start_img = pygame.image.load("pildid/Nupud/start_btn.png").convert_alpha()
 exit_img = pygame.image.load("pildid/Nupud/exit_btn.png").convert_alpha()
 
 #create buttons
-start_button = button.Button(screen_height // 2 + 75, screen_height // 2 - 10, start_img)
-exit_button = button.Button(screen_height // 2 + 75, screen_height // 2 + 150, exit_img)
+start_button = button.Button(screen_height // 2 + 210, screen_height // 2 + 30, start_img)
+exit_button = button.Button(screen_height // 2 + 210, screen_height // 2 + 180, exit_img)
 
 run = True
 while run:
