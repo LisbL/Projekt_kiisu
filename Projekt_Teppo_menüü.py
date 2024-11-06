@@ -16,6 +16,11 @@ start_game = False
 #background image
 BG = pygame.image.load("materjalid/dark forest/Preview.png").convert()
 BG = pygame.transform.scale(BG, (960,540))
+#font
+font = pygame.font.Font("fondid/Pixeltype.ttf", 125)
+font_shadow = pygame.font.Font("fondid/Pixeltype.ttf", 125)
+text = font.render("Teppo reis koju", True, "darkslategray")
+text_shadow = font_shadow.render("Teppo reis koju", True, "black")
 #button images
 start_img = pygame.image.load("pildid/Nupud/start_btn.png").convert_alpha()
 exit_img = pygame.image.load("pildid/Nupud/exit_btn.png").convert_alpha()
@@ -29,6 +34,8 @@ while run:
 
     if start_game == False:
         screen.blit(BG, (0,0))
+        screen.blit(text_shadow, (180,40))
+        screen.blit(text, (175,40))
         if start_button.draw(screen):
             start_game = True
         if exit_button.draw(screen):
