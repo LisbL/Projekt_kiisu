@@ -1,6 +1,7 @@
 import pygame
 import os
 from os.path import join
+import button
 
 pygame.init()
 
@@ -17,27 +18,19 @@ start_game = False
 start_img = pygame.image.load("pildid/Nupud/start_btn.png").convert_alpha()
 exit_img = pygame.image.load("pildid/Nupud/exit_btn.png").convert_alpha()
 
-#button class
-class Button():
-    def __init__(self, x, y, image):
-        self.image = image
-        self.rect = self.image.get_rect()
-        self.rect.center = (x, y)
-
-    def draw(self):
-        screen.blit(self.image, (self.rect.x, self.rect.y))
-
 #create buttons
-start_button = Button(screen_height // 2 + 75, screen_height // 2 - 10, start_img)
-exit_button = Button(screen_height // 2 + 75, screen_height // 2 + 150, exit_img)
+start_button = button.Button(screen_height // 2 + 75, screen_height // 2 - 10, start_img)
+exit_button = button.Button(screen_height // 2 + 75, screen_height // 2 + 150, exit_img)
 
 run = True
 while run:
 
     if start_game == False:
         screen.fill((60, 60, 88))
-        start_button.draw()
-        exit_button.draw()
+        if start_button.draw(screen):
+            start_game = True
+        if exit_button.draw(screen):
+            run = False
     else:
         pass
     for event in pygame.event.get():
