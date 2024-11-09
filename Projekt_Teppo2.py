@@ -19,6 +19,10 @@ FPS = 60
 #Game variables
 GRAVITY = 0.75
 TILE_SIZE = 40
+#Color variables
+GREEN = 45, 247, 61
+RED = 232, 29, 7
+WHITE = 255, 255, 255
 
 #Player action variable
 moving_left = False
@@ -29,6 +33,14 @@ apple_img = pygame.image.load(join("materjalid", "Dekoratsioonid", "items", "Ite
 apple_img = pygame.transform.scale(apple_img, (100, 100))
 
 items = { 'Health': apple_img}
+
+#define font
+font = pygame.font.SysFont('Futura', 30)
+
+#Funktsioonid
+def draw_text(text, font, text_col, x, y):
+    img = font.render(text, True, text_col)
+    screen.blit(img, (x, y))
 
 
 def draw_BG():
@@ -114,12 +126,34 @@ class ItemBox(pygame.sprite.Sprite):
             #check what kind of item
             if self.item_type == 'Health':
                 player.health += 25
+                if player.health > player.max_health:
+                    player.health = player.max_health
             #delete item
             self.kill()
 
+class HealthBar():
+    def __init__(self, x, y, health, max_health):
+        self.x = x
+        self.y = y
+        self.health = health
+        self.max_health = max_health
+
+    #update healthbar
+    def draw(self, health):
+        #update with new health
+        self.health = health
+        #Calculate health ratio
+        ratio = self.health / self.max_health
+        pygame.draw.rect(screen, WHITE, (self.x - 4, self.y - 4, 158, 28))
+        pygame.draw.rect(screen, RED, (self.x, self.y, 150, 20))#Järjekord oluline, roheline pärast punast (nagu layerid)
+        pygame.draw.rect(screen, GREEN, (self.x, self.y, 150 * ratio, 20))
+
+
 #Sprite groups
 item_group = pygame.sprite.Group()
+
 player = Player(200, 200, 100, 50, 5)
+health_bar = HealthBar(10, 10, player.health, player.health)
 
 #AJUTISELT
 
@@ -132,6 +166,9 @@ while running:
     clock.tick(FPS)
 
     draw_BG()
+    #show health
+    health_bar.draw(player.health)
+    # draw_text('Health: ', font, GREEN, 10, 35)
 
     player.move(moving_left, moving_right)
     player.draw()
