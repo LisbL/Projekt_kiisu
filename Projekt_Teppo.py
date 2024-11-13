@@ -1,18 +1,3 @@
-################################################
-# Programmeerimine I
-# 2024/2025 sügissemester
-#
-# Projekt
-# Teema:
-#
-#
-# Autorid: Lisbeth Lepp ja Martti Virnas
-#
-# mõningane eeskuju:
-#
-# Lisakommentaar (nt käivitusjuhend):
-#
-##################################################
 
 import pygame
 import os
