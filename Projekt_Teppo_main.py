@@ -26,7 +26,6 @@ pygame.init()
 screen_width = 960
 screen_height = 540
 BG = (50, 50, 50)
-RED = (255, 0, 0)
 
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Teppo reis koju")
@@ -41,10 +40,10 @@ start_intro = False
 GRAVITY = 0.75
 TILE_SIZE = 40
 #Color variables
-GREEN = 45, 247, 61
-RED = 232, 29, 7
-WHITE = 255, 255, 255
-BLACK = 0, 0, 0
+GREEN = (45, 247, 61)
+RED = (232, 29, 7)
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
 
 #Load music
 pygame.mixer.music.load("muusika/audio.mp3")
@@ -77,8 +76,9 @@ moving_right = False
 #Pick_ups
 apple_img = pygame.image.load(join("materjalid", "Dekoratsioonid", "items", "Item_White5.png")).convert_alpha()
 apple_img = pygame.transform.scale(apple_img, (100, 100))
-
-items = { 'Health': apple_img}
+poison_apple_img = pygame.image.load(join("materjalid", "Dekoratsioonid", "items", "Item_White6.png")).convert_alpha()
+poison_apple_img = pygame.transform.scale(poison_apple_img, (100, 100))
+items = { 'Health': apple_img, 'Poison': poison_apple_img}
 
 #Funktsioonid
 def draw_text(text, font, text_col, x, y):
@@ -92,10 +92,11 @@ def draw_BG():
 
 #Jätsin scale, ja char_type vahele
 class Player(pygame.sprite.Sprite):
-    def __init__(self, x, y, w_player, h_player, speed):
+    def __init__(self, char_type, x, y, w_player, h_player, speed):
         pygame.sprite.Sprite.__init__(self)
         self.speed = speed
         self.health = 100
+        self.char_type = char_type
         self.max_health = self.health
         self.alive = True
         self.direction = 1
@@ -171,6 +172,8 @@ class ItemBox(pygame.sprite.Sprite):
                 player.health += 25
                 if player.health > player.max_health:
                     player.health = player.max_health
+            elif self.item_type == 'Poison':
+                player.health -= 25
             #Delete item
             self.kill()
 
@@ -219,14 +222,20 @@ intro_fade = ScreenFade(1, BLACK, 4)
 
 #Sprite groups
 item_group = pygame.sprite.Group()
+enemy_group = pygame.sprite.Group()
 
-player = Player(200, 200, 100, 50, 5)
-health_bar = HealthBar(10, 10, player.health, player.health)
 
 #AJUTISELT
-
 item_box = ItemBox('Health', 400, 300)
+item_box2 = ItemBox('Poison', 600, 300)
 item_group.add(item_box)
+item_group.add(item_box2)
+
+player = Player('player', 200, 200, 100, 50, 5)
+health_bar = HealthBar(10, 10, player.health, player.health)
+
+enemy = Player('enemy', 500, 350, 90, 40, 0)
+enemy_group.add(enemy)
 
 running = True
 while running:
@@ -246,10 +255,15 @@ while running:
         draw_BG()
         #Show health
         health_bar.draw(player.health)
-        # draw_text('Health: ', font, GREEN, 10, 35)
 
         player.move(moving_left, moving_right)
+        player.update()
         player.draw()
+
+        for enemy in enemy_group:
+            enemy.move(moving_left,moving_right)
+            enemy.update()
+            enemy.draw()
 
         item_group.update()
         item_group.draw(screen)
