@@ -52,7 +52,7 @@ pygame.mixer.music.set_volume(0.3)
 pygame.mixer.music.play(-1, 0.0, 6000) #Esimene argument = Kui mitu korda ta mängib, teine argument = delay, kolmas argument = duration of fade (muusika ei hakka järsku käima)
 #Sound effects
 jump_fx = pygame.mixer.Sound("sound_effects/jump/jump_08.wav")
-jump_fx.set_volume(0.5)
+jump_fx.set_volume(0.2)
 
 #Background menu image
 BG_menu = pygame.image.load("materjalid/dark forest/Preview.png").convert()
