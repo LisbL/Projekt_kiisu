@@ -156,6 +156,27 @@ class Player(pygame.sprite.Sprite):
             self.speed = 0
             self.alive = False
 
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, x, y, enemy_w, enemy_h):
+        super().__init__()
+        self.image = pygame.Surface((enemy_w, enemy_h))
+        self.image.fill(RED)
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+        self.damage = 10
+    
+    def update(self):
+        if pygame.sprite.collide_rect(self, player):
+            player.health -= self.damage
+            if player.health < 0:
+                player.health = 0
+
+
+    def draw(self):
+        global screen
+        screen.blit(self.image, self.rect)
+
+
 class ItemBox(pygame.sprite.Sprite):
     def __init__(self, item_type, x, y):
         super().__init__()
@@ -234,7 +255,7 @@ item_group.add(item_box2)
 player = Player('player', 200, 200, 100, 50, 5)
 health_bar = HealthBar(10, 10, player.health, player.health)
 
-enemy = Player('enemy', 500, 350, 90, 40, 0)
+enemy = Enemy(500, 390, 50, 40)
 enemy_group.add(enemy)
 
 running = True
@@ -253,20 +274,23 @@ while running:
             running = False
     else:
         draw_BG()
+
+
         #Show health
         health_bar.draw(player.health)
 
-        player.move(moving_left, moving_right)
         player.update()
         player.draw()
 
         for enemy in enemy_group:
-            enemy.move(moving_left,moving_right)
             enemy.update()
             enemy.draw()
 
         item_group.update()
         item_group.draw(screen)
+
+        if player.alive:
+            player.move(moving_left, moving_right)
 
         #Show intro
         if start_intro == True:
