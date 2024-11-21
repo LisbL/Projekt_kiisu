@@ -108,6 +108,7 @@ class Player(pygame.sprite.Sprite):
         self.image.fill((3, 252, 227))
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)#Määrab rect objekti keskpunkti
+        self.last_hit_time = 0 #järgib, millal viimati haiget sai
 
     def move(self, moving_left, moving_right):
         #Reset movement variables
@@ -167,9 +168,12 @@ class Enemy(pygame.sprite.Sprite):
     
     def update(self):
         if pygame.sprite.collide_rect(self, player):
-            player.health -= self.damage
-            if player.health < 0:
-                player.health = 0
+            current_time = pygame.time.get_ticks()
+            if current_time - player.last_hit_time > 1000:
+                player.health -= self.damage
+                player.last_hit_time = current_time
+                if player.health < 0:
+                    player.health = 0
 
 
     def draw(self):
