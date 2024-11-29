@@ -26,7 +26,6 @@ pygame.init()
 screen_width = 960
 screen_height = 540
 BG = (50, 50, 50)
-RED = (255, 0, 0)
 
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Teppo reis koju")
@@ -41,10 +40,10 @@ start_intro = False
 GRAVITY = 0.75
 TILE_SIZE = 40
 #Color variables
-GREEN = 45, 247, 61
-RED = 232, 29, 7
-WHITE = 255, 255, 255
-BLACK = 0, 0, 0
+GREEN = (45, 247, 61)
+RED = (232, 29, 7)
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
 
 #Load music
 pygame.mixer.music.load("muusika/audio.mp3")
@@ -65,10 +64,12 @@ text_shadow = font_shadow.render("Teppo reis koju", True, "black")
 #Button images
 start_img = pygame.image.load("pildid/Nupud/start_btn.png").convert_alpha()
 exit_img = pygame.image.load("pildid/Nupud/exit_btn.png").convert_alpha()
+restart_img = pygame.image.load("pildid/Nupud/restart_btn.png").convert_alpha()
 
 #create buttons
 start_button = button.Button(screen_height // 2 + 205, screen_height // 2 + 30, start_img)
 exit_button = button.Button(screen_height // 2 + 205, screen_height // 2 + 180, exit_img)
+restat_button = button.Button(screen_height // 2 + 205, screen_height // 2 + 30, restart_img)
 
 #Player action variable
 moving_left = False
@@ -77,8 +78,9 @@ moving_right = False
 #Pick_ups
 apple_img = pygame.image.load(join("materjalid", "Dekoratsioonid", "items", "Item_White5.png")).convert_alpha()
 apple_img = pygame.transform.scale(apple_img, (100, 100))
-
-items = { 'Health': apple_img}
+poison_apple_img = pygame.image.load(join("materjalid", "Dekoratsioonid", "items", "Item_White6.png")).convert_alpha()
+poison_apple_img = pygame.transform.scale(poison_apple_img, (100, 100))
+items = { 'Health': apple_img, 'Poison': poison_apple_img}
 
 #Funktsioonid
 def draw_text(text, font, text_col, x, y):
@@ -92,10 +94,11 @@ def draw_BG():
 
 #Jätsin scale, ja char_type vahele
 class Player(pygame.sprite.Sprite):
-    def __init__(self, x, y, w_player, h_player, speed):
+    def __init__(self, char_type, x, y, w_player, h_player, speed):
         pygame.sprite.Sprite.__init__(self)
         self.speed = speed
         self.health = 100
+        self.char_type = char_type
         self.max_health = self.health
         self.alive = True
         self.direction = 1
@@ -103,10 +106,48 @@ class Player(pygame.sprite.Sprite):
         self.jump = False
         self.in_air = True
         self.flip = False
-        self.image = pygame.Surface((w_player, h_player))
-        self.image.fill((3, 252, 227))
+        self.animation_list = []
+        self.frame_index = 0 #Animation is in the first frame
+        self.action = 0
+        self.update_time = pygame.time.get_ticks() #when the animation was last updated
+        scale = 2
+
+        #idle
+        temp_list = []
+        for i in range(10):
+            img_2 = pygame.image.load(f"materjalid/Tegelased/Teppo/Idle/idle_{i}.png")
+            img_2 = pygame.transform.scale(img_2, (int(img_2.get_width() * scale), int(img_2.get_height() * scale)))
+            temp_list.append(img_2)
+        self.animation_list.append(temp_list)
+
+        #running
+        temp_list = []
+        for i in range(8):
+            img_2 = pygame.image.load(f"materjalid/Tegelased/Teppo/Running/run_{i}.png")
+            img_2 = pygame.transform.scale(img_2, (int(img_2.get_width() * scale), int(img_2.get_height() * scale)))
+            temp_list.append(img_2)
+        self.animation_list.append(temp_list)
+
+        #jump
+        temp_list = []
+        for i in range(2):
+            img_2 = pygame.image.load(f"materjalid/Tegelased/Teppo/Jump/jump_{i}.png")
+            img_2 = pygame.transform.scale(img_2, (int(img_2.get_width() * scale), int(img_2.get_height() * scale)))
+            temp_list.append(img_2)
+        self.animation_list.append(temp_list)
+
+        #death (loaf)
+        temp_list = []
+        for i in range(4):
+            img_2 = pygame.image.load(f"materjalid/Tegelased/Teppo/Death/loaf_{i}.png")
+            img_2 = pygame.transform.scale(img_2, (int(img_2.get_width() * scale), int(img_2.get_height() * scale)))
+            temp_list.append(img_2)
+        self.animation_list.append(temp_list)
+
+        self.image = self.animation_list[self.action][self.frame_index]
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)#Määrab rect objekti keskpunkti
+        self.last_hit_time = 0 #järgib, millal viimati haiget sai
 
     def move(self, moving_left, moving_right):
         #Reset movement variables
@@ -142,6 +183,44 @@ class Player(pygame.sprite.Sprite):
         self.rect.x += dx
         self.rect.y += dy
 
+    def update_animation(self):
+        #update animation
+        ANIMATION_COOLDOWN = 130 #Limiteerib kui kiiresti pilt muutub (ms)
+
+        if pygame.time.get_ticks() - self.update_time > ANIMATION_COOLDOWN:
+            self.update_time = pygame.time.get_ticks()
+            if self.action == 3:
+                if self.frame_index < len(self.animation_list[self.action]) - 1:
+                    self.frame_index += 1
+            else:
+                self.frame_index += 1
+                if self.frame_index >= len(self.animation_list[self.action]):
+                    self.frame_index = 0
+
+        if self.action == 2:
+            if self.vel_y < 0:
+                self.frame_index = 0
+            else:
+                self.frame_index = 1
+        else:
+            self.image = self.animation_list[self.action][self.frame_index]
+            #kontrollib kas piisavalt aega on mööda läinud viimasest värskendamisest
+            if pygame.time.get_ticks() - self.update_time > ANIMATION_COOLDOWN:
+                self.update_time = pygame.time.get_ticks()
+                self.frame_index += 1
+            #kui animatsioon on tehtud, siis algab uuesti
+            if self.frame_index >= len(self.animation_list[self.action]):
+                self.frame_index = 0
+        self.image = self.animation_list[self.action][self.frame_index]
+
+    def update_action(self, new_action):
+        #kontrolli kas uus tegevus on eelmisest erinev
+        if new_action != self.action and self.alive:
+            self.action = new_action
+            self.frame_index = 0
+            self.update_time = pygame.time.get_ticks()
+
+
     def draw(self):
         global screen
         screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
@@ -153,7 +232,33 @@ class Player(pygame.sprite.Sprite):
         if self.health <= 0:
             self.health = 0
             self.speed = 0
+            if self.action != 3:
+                self.update_action(3)
             self.alive = False
+
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, x, y, enemy_w, enemy_h):
+        super().__init__()
+        self.image = pygame.Surface((enemy_w, enemy_h))
+        self.image.fill(RED)
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+        self.damage = 10
+    
+    def update(self):
+        if pygame.sprite.collide_rect(self, player):
+            current_time = pygame.time.get_ticks()
+            if current_time - player.last_hit_time > 1000:
+                player.health -= self.damage
+                player.last_hit_time = current_time
+                if player.health < 0:
+                    player.health = 0
+
+
+    def draw(self):
+        global screen
+        screen.blit(self.image, self.rect)
+
 
 class ItemBox(pygame.sprite.Sprite):
     def __init__(self, item_type, x, y):
@@ -171,6 +276,8 @@ class ItemBox(pygame.sprite.Sprite):
                 player.health += 25
                 if player.health > player.max_health:
                     player.health = player.max_health
+            elif self.item_type == 'Poison':
+                player.health -= 25
             #Delete item
             self.kill()
 
@@ -219,19 +326,26 @@ intro_fade = ScreenFade(1, BLACK, 4)
 
 #Sprite groups
 item_group = pygame.sprite.Group()
-
-player = Player(200, 200, 100, 50, 5)
-health_bar = HealthBar(10, 10, player.health, player.health)
+enemy_group = pygame.sprite.Group()
 
 #AJUTISELT
-
 item_box = ItemBox('Health', 400, 300)
+item_box2 = ItemBox('Poison', 600, 300)
 item_group.add(item_box)
+item_group.add(item_box2)
+
+player = Player('player', 200, 200, 100, 50, 5)
+health_bar = HealthBar(10, 10, player.health, player.health)
+
+enemy = Enemy(500, 390, 50, 40)
+enemy_group.add(enemy)
 
 running = True
 while running:
 
     clock.tick(FPS)
+
+    player.update_animation()
 
     if start_game == False:
         screen.blit(BG_menu, (0,0))
@@ -244,15 +358,31 @@ while running:
             running = False
     else:
         draw_BG()
+
+
         #Show health
         health_bar.draw(player.health)
-        # draw_text('Health: ', font, GREEN, 10, 35)
 
-        player.move(moving_left, moving_right)
+        player.update()
         player.draw()
+
+        for enemy in enemy_group:
+            enemy.update()
+            enemy.draw()
 
         item_group.update()
         item_group.draw(screen)
+
+        if player.alive:
+            if player.in_air:
+                    player.update_action(2) # 2 = jump
+            elif moving_left or moving_right:
+                player.update_action(1) # 1 = running
+            else:
+                player.update_action(0) # 0 = idle
+            player.move(moving_left, moving_right)
+        else:
+            player.update_action(3) # 3 = loaf
 
         #Show intro
         if start_intro == True:
