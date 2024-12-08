@@ -19,6 +19,7 @@ from pygame import mixer
 import os
 from os.path import join
 import button
+import csv
 
 mixer.init()
 pygame.init()
@@ -38,12 +39,19 @@ FPS = 60
 start_game = False
 start_intro = False
 GRAVITY = 0.75
-TILE_SIZE = 40
+SCROLL_THRESH = 200
 #Color variables
 GREEN = (45, 247, 61)
 RED = (232, 29, 7)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
+ROWS = 15
+COLS = 150
+TILE_SIZE = screen_height // ROWS #size'ib ekraani vertikaalselt võrdselt
+TILE_TYPES = 32
+screen_scroll = 0
+bg_scroll = 0
+level = 1 #alustab esimesest levelist
 
 #Load music
 pygame.mixer.music.load("muusika/audio.mp3")
@@ -56,6 +64,19 @@ jump_fx.set_volume(0.2)
 #Background menu image
 BG_menu = pygame.image.load("materjalid/dark forest/Preview.png").convert()
 BG_menu = pygame.transform.scale(BG_menu, (960,540))
+#Load background images
+pine1_img = pygame.image.load("materjalid/Taustad/PineForestParallax/MorningLayer1.png"). convert_alpha()
+pine1_img = pygame.transform.scale(pine1_img, (screen_width, screen_height))
+pine2_img = pygame.image.load("materjalid/Taustad/PineForestParallax/MorningLayer2.png"). convert_alpha()
+pine2_img = pygame.transform.scale(pine2_img, (screen_width, screen_height))
+pine3_img = pygame.image.load("materjalid/Taustad/PineForestParallax/MorningLayer3.png"). convert_alpha()
+pine3_img = pygame.transform.scale(pine3_img, (screen_width, screen_height))
+pine4_img = pygame.image.load("materjalid/Taustad/PineForestParallax/MorningLayer4.png"). convert_alpha()
+pine4_img = pygame.transform.scale(pine4_img, (screen_width, screen_height))
+pine5_img = pygame.image.load("materjalid/Taustad/PineForestParallax/MorningLayer5.png"). convert_alpha()
+pine5_img = pygame.transform.scale(pine5_img, (screen_width, screen_height))
+bg_color_img = pygame.image.load("materjalid/Taustad/PineForestParallax/MorningLayer6.png"). convert_alpha()
+bg_color_img = pygame.transform.scale(bg_color_img, (screen_width, screen_height))
 #Font
 font_menu = pygame.font.Font("fondid/Pixeltype.ttf", 125)
 font_shadow = pygame.font.Font("fondid/Pixeltype.ttf", 125)
@@ -75,6 +96,31 @@ restat_button = button.Button(screen_height // 2 + 205, screen_height // 2 + 30,
 moving_left = False
 moving_right = False
 
+#Store tiles in a list
+img_list = []
+for x in range(1, 24):
+    img = pygame.image.load(f"materjalid/Tileset/1 Tiles/Tile_{x}.png").convert_alpha()
+    img = pygame.transform.scale(img, (TILE_SIZE, TILE_SIZE))
+    img_list.append(img)
+for x in range(5, 7):
+    img = pygame.image.load(f"materjalid/Dekoratsioonid/items/Item_White{x}.png").convert_alpha()
+    img = pygame.transform.scale(img, (TILE_SIZE, TILE_SIZE))
+    img_list.append(img)
+for x in range(1, 4):
+    img = pygame.image.load(f"materjalid/Dekoratsioonid/3 Objects/Grass/{x}.png").convert_alpha()
+    img = pygame.transform.scale(img, (TILE_SIZE, TILE_SIZE * 0.5))
+    img_list.append(img)
+for x in range(1, 3):
+    img = pygame.image.load(f"materjalid/Dekoratsioonid/spikes/tile_{x}.png").convert_alpha()
+    img = pygame.transform.scale(img, (TILE_SIZE, TILE_SIZE * 0.8))
+    img_list.append(img)
+img = pygame.image.load(f"materjalid/Dekoratsioonid/3 Objects/Pointers/1.png").convert_alpha()
+img = pygame.transform.scale(img, (TILE_SIZE, TILE_SIZE))
+img_list.append(img)
+img = pygame.image.load(f"materjalid/Tegelased/Teppo/Idle/idle_0.png").convert_alpha()
+img = pygame.transform.scale(img, (TILE_SIZE, TILE_SIZE))
+img_list.append(img)
+
 #Pick_ups
 apple_img = pygame.image.load(join("materjalid", "Dekoratsioonid", "items", "Item_White5.png")).convert_alpha()
 apple_img = pygame.transform.scale(apple_img, (100, 100))
@@ -90,7 +136,14 @@ def draw_text(text, font, text_col, x, y):
 
 def draw_BG():
     screen.fill(BG)
-    pygame.draw.line(screen, RED, (0, 400), (screen_width, 400))
+    width = bg_color_img.get_width()
+    for i in range(7):
+        screen.blit(bg_color_img, ((i*width) - bg_scroll * 0.4, 0))
+        screen.blit(pine5_img, ((i*width) - bg_scroll * 0.5, screen_height - pine5_img.get_height()))
+        screen.blit(pine4_img, ((i*width) - bg_scroll * 0.6,screen_height - pine4_img.get_height()))
+        screen.blit(pine3_img, ((i*width) - bg_scroll * 0.7,screen_height - pine3_img.get_height()))
+        screen.blit(pine2_img, ((i*width) - bg_scroll * 0.8,screen_height - pine2_img.get_height()))
+        screen.blit(pine1_img, ((i*width) - bg_scroll * 0.9,screen_height - pine1_img.get_height()))
 
 #Jätsin scale, ja char_type vahele
 class Player(pygame.sprite.Sprite):
@@ -147,10 +200,13 @@ class Player(pygame.sprite.Sprite):
         self.image = self.animation_list[self.action][self.frame_index]
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)#Määrab rect objekti keskpunkti
+        self.width = self.image.get_width()
+        self.height = self.image.get_height()
         self.last_hit_time = 0 #järgib, millal viimati haiget sai
 
     def move(self, moving_left, moving_right):
         #Reset movement variables
+        screen_scroll = 0
         dx = 0
         dy = 0
         #Assign movement variables if moving left or right
@@ -171,17 +227,42 @@ class Player(pygame.sprite.Sprite):
         #Apply gravity
         self.vel_y += GRAVITY
         if self.vel_y > 10:
-            self.vel_y
+            self.vel_y = 10
         dy += self.vel_y
 
-        #Check collision with floor
-        if self.rect.bottom + dy > 400:
-            dy = 400 - self.rect.bottom
-            self.in_air = False
-        
+        #Check for collision
+        for tile in world.obstacle_list:
+            #check collision in the x direction
+            if tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
+                dx = 0
+            #check for collision in the y direction
+            if tile[1].colliderect(self.rect.x + dy, self.rect.y, self.width, self.height):
+                #check if below the ground
+                if self.vel_y < 0:
+                    self.vel_y = 0
+                    dy = tile[1].bottom - self.rect.top
+                #check if above the ground
+                elif self.vel_y >= 0:
+                    self.vel_y = 0
+                    self.in_air = False
+                    dy = tile[1].top - self.rect.bottom
+
+        #check if going off the edges of the screen
+        if self.char_type == 'player':
+            if self.rect.left + dx < 0 or self.rect.right + dx > screen_width:
+                dx = 0
         #Update rectangle position
         self.rect.x += dx
         self.rect.y += dy
+
+        #update scroll based on player pos
+        if self.char_type == 'player':
+            if (self.rect.right > screen_width - SCROLL_THRESH and bg_scroll < (world.level_length * TILE_SIZE) - screen_width)\
+                or (self.rect.left < SCROLL_THRESH and bg_scroll > abs(dx)):
+                self.rect.x -= dx
+                screen_scroll = -dx #kui liigub paremale siis ekraan liigub vasakule
+
+        return screen_scroll
 
     def update_animation(self):
         #update animation
@@ -260,6 +341,94 @@ class Enemy(pygame.sprite.Sprite):
         screen.blit(self.image, self.rect)
 
 
+class World():
+    def __init__(self):
+        self.obstacle_list = []
+
+    def process_data(self, data): #world data that we loaded in from our csv file
+        self.level_length = len(data[0])
+        #iterate through each value in level data file
+        for y, row in enumerate(data):
+            for x, tile in enumerate(row):
+                if tile >= 0: #-1 pole vaja kaasa arvata, sest nad on tühjad kohad
+                    img = img_list[tile] #võtab pildi järjendist
+                    img_rect = img.get_rect()
+                    img_rect.x = x * TILE_SIZE 
+                    img_rect.y = y * TILE_SIZE #annab igale laetud pildile ristküliku
+                    tile_data = (img, img_rect)
+                    if tile >= 0 and tile <= 5:
+                        self.obstacle_list.append(tile_data)
+                    if tile >= 10 and tile <= 16:
+                        self.obstacle_list.append(tile_data)
+                    if tile >= 18 and tile <= 20:
+                        self.obstacle_list.append(tile_data)
+                    elif tile >= 6 and tile <= 8:
+                        self.obstacle_list.append(tile_data) #PLATVORMID!! vajavad tegemist!
+                    elif tile == 9:
+                        water = Water(img, x * TILE_SIZE, y * TILE_SIZE)
+                        water_group.add(decoration)
+                    elif tile == 17:
+                        water = Water(img, x * TILE_SIZE, y * TILE_SIZE)
+                        water_group.add(decoration)
+                    elif tile >= 22 and tile <= 23:
+                        water = Water(img, x * TILE_SIZE, y * TILE_SIZE)
+                        water_group.add(decoration)
+                    elif tile >= 25 and tile <= 27:
+                        decoration = Decoration(img, x * TILE_SIZE, y * TILE_SIZE)
+                        decoration_group.add(decoration)
+                    elif tile == 31: #create a player
+                        player = Player('player', x * TILE_SIZE, y * TILE_SIZE, 100, 50, 5)
+                        health_bar = HealthBar(10, 10, player.health, player.health)
+                    elif tile >= 28 and tile <= 29: #enemy (spikes)
+                        enemy = Enemy(x * TILE_SIZE, y * TILE_SIZE, 50, 40)
+                        enemy_group.add(enemy)
+                    elif tile == 23: #hea õun
+                        item_box = ItemBox('Health', x * TILE_SIZE, y * TILE_SIZE)
+                        item_group.add(item_box)
+                    elif tile == 24: #paha õun
+                        item_box2 = ItemBox('Poison', x * TILE_SIZE, y * TILE_SIZE)
+                        item_group.add(item_box2)
+                    elif tile == 30: #create exit
+                        exit = Exit(img, x * TILE_SIZE, y * TILE_SIZE)
+                        exit_group.add(decoration)
+
+        return player, health_bar
+
+    def draw(self):
+        for tile in self.obstacle_list:
+            tile[1][0] += screen_scroll
+            screen.blit(tile[0], tile[1])
+
+class Water(pygame.sprite.Sprite):
+    def __init__(self, img, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = img
+        self.rect = self.image.get_rect()
+        self.rect.midtop = (x + TILE_SIZE // 2, y + (TILE_SIZE - self.image.get_height()))
+
+    def update(self):
+        self.rect.x += screen_scroll
+
+class Decoration(pygame.sprite.Sprite):
+    def __init__(self, img, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = img
+        self.rect = self.image.get_rect()
+        self.rect.midtop = (x + TILE_SIZE // 2, y + (TILE_SIZE - self.image.get_height()))
+
+    def update(self):
+        self.rect.x += screen_scroll
+
+class Exit(pygame.sprite.Sprite):
+    def __init__(self, img, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = img
+        self.rect = self.image.get_rect()
+        self.rect.midtop = (x + TILE_SIZE // 2, y + (TILE_SIZE - self.image.get_height()))
+
+    def update(self):
+        self.rect.x += screen_scroll
+
 class ItemBox(pygame.sprite.Sprite):
     def __init__(self, item_type, x, y):
         super().__init__()
@@ -269,6 +438,8 @@ class ItemBox(pygame.sprite.Sprite):
         self.rect.midtop = (x + TILE_SIZE // 2, y + (TILE_SIZE - self.image.get_height()))
 
     def update(self):
+        #scroll
+        self.rect.x += screen_scroll
         #Check if it has been picked up by player
         if pygame.sprite.collide_rect(self, player):
             #Check what kind of item
@@ -327,18 +498,23 @@ intro_fade = ScreenFade(1, BLACK, 4)
 #Sprite groups
 item_group = pygame.sprite.Group()
 enemy_group = pygame.sprite.Group()
+decoration_group = pygame.sprite.Group()
+water_group = pygame.sprite.Group()
+exit_group = pygame.sprite.Group()
 
-#AJUTISELT
-item_box = ItemBox('Health', 400, 300)
-item_box2 = ItemBox('Poison', 600, 300)
-item_group.add(item_box)
-item_group.add(item_box2)
-
-player = Player('player', 200, 200, 100, 50, 5)
-health_bar = HealthBar(10, 10, player.health, player.health)
-
-enemy = Enemy(500, 390, 50, 40)
-enemy_group.add(enemy)
+#Create empty tile list
+world_data = []
+for row in range (ROWS): #15 korda
+    r = [-1] * COLS #teeb järjendi 150-st -1 väärtusega tile'idest
+    world_data.append(r)
+#load in level data and create world
+with open(f"level{level}_data.csv", newline="") as csvfile:
+    reader = csv.reader(csvfile, delimiter=",") #delimiter ütleb nt kus -1 muutub mingiks muuks väärtuseks (mingiks teiseks plokiks)
+    for x, row in enumerate(reader):
+        for y, tile in enumerate(row):
+            world_data[x][y] = int(tile)
+world = World()
+player, health_bar = world.process_data(world_data)
 
 running = True
 while running:
@@ -359,7 +535,8 @@ while running:
     else:
         draw_BG()
 
-
+        #draw world map
+        world.draw()
         #Show health
         health_bar.draw(player.health)
 
@@ -372,6 +549,12 @@ while running:
 
         item_group.update()
         item_group.draw(screen)
+        decoration_group.update()
+        decoration_group.draw(screen)
+        water_group.update()
+        water_group.draw(screen)
+        exit_group.update()
+        exit_group.draw(screen)
 
         if player.alive:
             if player.in_air:
@@ -380,7 +563,8 @@ while running:
                 player.update_action(1) # 1 = running
             else:
                 player.update_action(0) # 0 = idle
-            player.move(moving_left, moving_right)
+            screen_scroll = player.move(moving_left, moving_right)
+            bg_scroll -= screen_scroll
         else:
             player.update_action(3) # 3 = loaf
 

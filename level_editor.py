@@ -64,6 +64,9 @@ for x in range(1, 3):
 img = pygame.image.load(f"materjalid/Dekoratsioonid/3 Objects/Pointers/1.png").convert_alpha()
 img = pygame.transform.scale(img, (TILE_SIZE, TILE_SIZE))
 img_list.append(img)
+img = pygame.image.load(f"materjalid/Tegelased/Teppo/Idle/idle_0.png").convert_alpha()
+img = pygame.transform.scale(img, (TILE_SIZE, TILE_SIZE))
+img_list.append(img)
 
 save_img = pygame.image.load("materjalid/Tileset/save_btn.png").convert_alpha()
 load_img = pygame.image.load("materjalid/Tileset/load_btn.png").convert_alpha()
