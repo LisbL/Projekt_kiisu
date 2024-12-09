@@ -225,7 +225,7 @@ class Player(pygame.sprite.Sprite):
         #Apply gravity
         self.vel_y += GRAVITY
         if self.vel_y > 10:
-            self.vel_y = 10
+            self.vel_y
         dy += self.vel_y
 
         #Check for collision
@@ -234,7 +234,7 @@ class Player(pygame.sprite.Sprite):
             if tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
                 dx = 0
             #check for collision in the y direction
-            if tile[1].colliderect(self.rect.x + dy, self.rect.y, self.width, self.height):
+            if tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
                 #check if below the ground
                 if self.vel_y < 0:
                     self.vel_y = 0
@@ -331,12 +331,13 @@ class Enemy(pygame.sprite.Sprite):
                 player.last_hit_time = current_time
                 if player.health < 0:
                     player.health = 0
+        self.rect.x += screen_scroll
 
 
     def draw(self):
         global screen
         global bg_scroll
-        draw_x = self.rect.x - bg_scroll
+        draw_x = self.rect.x
         draw_y = self.rect.y
         screen.blit(self.image, (draw_x, draw_y))
 
