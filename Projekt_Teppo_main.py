@@ -123,9 +123,7 @@ img_list.append(img)
 
 #Pick_ups
 apple_img = pygame.image.load(join("materjalid", "Dekoratsioonid", "items", "Item_White5.png")).convert_alpha()
-apple_img = pygame.transform.scale(apple_img, (100, 100))
 poison_apple_img = pygame.image.load(join("materjalid", "Dekoratsioonid", "items", "Item_White6.png")).convert_alpha()
-poison_apple_img = pygame.transform.scale(poison_apple_img, (100, 100))
 items = { 'Health': apple_img, 'Poison': poison_apple_img}
 
 #Funktsioonid
@@ -145,9 +143,9 @@ def draw_BG():
         screen.blit(pine2_img, ((i*width) - bg_scroll * 0.8,screen_height - pine2_img.get_height()))
         screen.blit(pine1_img, ((i*width) - bg_scroll * 0.9,screen_height - pine1_img.get_height()))
 
-#Jätsin scale, ja char_type vahele
+#Jätsin scale vahele
 class Player(pygame.sprite.Sprite):
-    def __init__(self, char_type, x, y, w_player, h_player, speed):
+    def __init__(self, char_type, x, y, speed):
         pygame.sprite.Sprite.__init__(self)
         self.speed = speed
         self.health = 100
@@ -163,7 +161,7 @@ class Player(pygame.sprite.Sprite):
         self.frame_index = 0 #Animation is in the first frame
         self.action = 0
         self.update_time = pygame.time.get_ticks() #when the animation was last updated
-        scale = 2
+        scale = 1.3
 
         #idle
         temp_list = []
@@ -301,7 +299,6 @@ class Player(pygame.sprite.Sprite):
             self.frame_index = 0
             self.update_time = pygame.time.get_ticks()
 
-
     def draw(self):
         global screen
         screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
@@ -318,12 +315,12 @@ class Player(pygame.sprite.Sprite):
             self.alive = False
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, x, y, enemy_w, enemy_h):
-        super().__init__()
-        self.image = pygame.Surface((enemy_w, enemy_h))
-        self.image.fill(RED)
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load('materjalid/Dekoratsioonid/spikes/tile_2.png')
+        self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE * 0.8))
         self.rect = self.image.get_rect()
-        self.rect.center = (x, y)
+        self.rect.midtop = (x + TILE_SIZE // 2, y + (TILE_SIZE - self.image.get_height()))
         self.damage = 10
     
     def update(self):
@@ -338,7 +335,10 @@ class Enemy(pygame.sprite.Sprite):
 
     def draw(self):
         global screen
-        screen.blit(self.image, self.rect)
+        global bg_scroll
+        draw_x = self.rect.x - bg_scroll
+        draw_y = self.rect.y
+        screen.blit(self.image, (draw_x, draw_y))
 
 
 class World():
@@ -366,21 +366,21 @@ class World():
                         self.obstacle_list.append(tile_data) #PLATVORMID!! vajavad tegemist!
                     elif tile == 9:
                         water = Water(img, x * TILE_SIZE, y * TILE_SIZE)
-                        water_group.add(decoration)
+                        water_group.add(water)
                     elif tile == 17:
                         water = Water(img, x * TILE_SIZE, y * TILE_SIZE)
-                        water_group.add(decoration)
-                    elif tile >= 22 and tile <= 23:
+                        water_group.add(water)
+                    elif tile >= 21 and tile < 23:
                         water = Water(img, x * TILE_SIZE, y * TILE_SIZE)
-                        water_group.add(decoration)
+                        water_group.add(water)
                     elif tile >= 25 and tile <= 27:
                         decoration = Decoration(img, x * TILE_SIZE, y * TILE_SIZE)
                         decoration_group.add(decoration)
                     elif tile == 31: #create a player
-                        player = Player('player', x * TILE_SIZE, y * TILE_SIZE, 100, 50, 5)
+                        player = Player('player', x * TILE_SIZE, y * TILE_SIZE, 5)
                         health_bar = HealthBar(10, 10, player.health, player.health)
                     elif tile >= 28 and tile <= 29: #enemy (spikes)
-                        enemy = Enemy(x * TILE_SIZE, y * TILE_SIZE, 50, 40)
+                        enemy = Enemy(x * TILE_SIZE, y * TILE_SIZE)
                         enemy_group.add(enemy)
                     elif tile == 23: #hea õun
                         item_box = ItemBox('Health', x * TILE_SIZE, y * TILE_SIZE)
@@ -390,7 +390,7 @@ class World():
                         item_group.add(item_box2)
                     elif tile == 30: #create exit
                         exit = Exit(img, x * TILE_SIZE, y * TILE_SIZE)
-                        exit_group.add(decoration)
+                        exit_group.add(exit)
 
         return player, health_bar
 
@@ -431,7 +431,7 @@ class Exit(pygame.sprite.Sprite):
 
 class ItemBox(pygame.sprite.Sprite):
     def __init__(self, item_type, x, y):
-        super().__init__()
+        pygame.sprite.Sprite.__init__(self)
         self.item_type = item_type
         self.image = items[self.item_type]
         self.rect = self.image.get_rect()
