@@ -41,7 +41,7 @@ start_game = False
 start_intro = False
 GRAVITY = 0.75
 SCROLL_THRESH = 200
-MAX_LEVELS = 1
+MAX_LEVELS = 2
 #Color variables
 GREEN = (45, 247, 61)
 DARK_GREEN = (90, 166, 123)
@@ -533,6 +533,7 @@ class ScreenFade():
     
 #Create screen fades
 intro_fade = ScreenFade(1, BLACK, 4)
+death_fade = ScreenFade(2, DARK_GREEN, 4)
 
 #Sprite groups
 item_group = pygame.sprite.Group()
@@ -606,6 +607,7 @@ while running:
             bg_scroll -= screen_scroll
             #Check if player has completed the level
             if level_complete:
+                start_intro = True
                 level += 1
                 bg_scroll = 0
                 world_data = reset_level()
@@ -621,18 +623,19 @@ while running:
         else:
             player.update_action(3) # 3 = loaf
             screen_scroll = 0
-            screen.fill(DARK_GREEN)
-            
-            if restart_button.draw(screen):
-                bg_scroll = 0
-                world_data = reset_level()
-                with open(f"level{level}_data.csv", newline="") as csvfile:
-                    reader = csv.reader(csvfile, delimiter=",")
-                    for x, row in enumerate(reader):
-                        for y, tile in enumerate(row):
-                            world_data[x][y] = int(tile)
-                world = World()
-                player, health_bar = world.process_data(world_data)
+            if death_fade.fade():
+                if restart_button.draw(screen):
+                    death_fade.fade_counter = 0
+                    start_intro = True
+                    bg_scroll = 0
+                    world_data = reset_level()
+                    with open(f"level{level}_data.csv", newline="") as csvfile:
+                        reader = csv.reader(csvfile, delimiter=",")
+                        for x, row in enumerate(reader):
+                            for y, tile in enumerate(row):
+                                world_data[x][y] = int(tile)
+                    world = World()
+                    player, health_bar = world.process_data(world_data)
 
         #Show intro
         if start_intro == True:
