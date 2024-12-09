@@ -90,7 +90,7 @@ restart_img = pygame.image.load("pildid/Nupud/restart_btn.png").convert_alpha()
 #create buttons
 start_button = button.Button(screen_height // 2 + 205, screen_height // 2 + 30, start_img)
 exit_button = button.Button(screen_height // 2 + 205, screen_height // 2 + 180, exit_img)
-restat_button = button.Button(screen_height // 2 + 205, screen_height // 2 + 30, restart_img)
+restart_button = button.Button(screen_height // 2 + 205, screen_height // 2 + 30, restart_img)
 
 #Player action variable
 moving_left = False
@@ -245,6 +245,20 @@ class Player(pygame.sprite.Sprite):
                     self.in_air = False
                     dy = tile[1].top - self.rect.bottom
 
+        #Check for collision with water
+        if pygame.sprite.spritecollide(self, water_group, False):
+            current_time = pygame.time.get_ticks()
+            if current_time - player.last_hit_time > 1000:
+                player.health -= 30
+                player.last_hit_time = current_time
+                if player.health < 0:
+                    player.health = 0
+
+
+        #Check if fallen off the map
+        if self.rect.bottom > screen_height:
+            self.health = 0
+
         #check if going off the edges of the screen
         if self.char_type == 'player':
             if self.rect.left + dx < 0 or self.rect.right + dx > screen_width:
@@ -307,8 +321,10 @@ class Player(pygame.sprite.Sprite):
         self.check_alive()
 
     def check_alive(self):
+        global screen_scroll
         if self.health <= 0:
             self.health = 0
+            screen_scroll = 0
             self.speed = 0
             if self.action != 3:
                 self.update_action(3)
