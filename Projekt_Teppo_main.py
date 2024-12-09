@@ -28,6 +28,7 @@ screen_width = 960
 screen_height = 540
 BG = (50, 50, 50)
 
+
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Teppo reis koju")
 
@@ -40,8 +41,10 @@ start_game = False
 start_intro = False
 GRAVITY = 0.75
 SCROLL_THRESH = 200
+MAX_LEVELS = 1
 #Color variables
 GREEN = (45, 247, 61)
+DARK_GREEN = (90, 166, 123)
 RED = (232, 29, 7)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -142,6 +145,22 @@ def draw_BG():
         screen.blit(pine3_img, ((i*width) - bg_scroll * 0.7,screen_height - pine3_img.get_height()))
         screen.blit(pine2_img, ((i*width) - bg_scroll * 0.8,screen_height - pine2_img.get_height()))
         screen.blit(pine1_img, ((i*width) - bg_scroll * 0.9,screen_height - pine1_img.get_height()))
+
+#Restart level funktsioon
+def reset_level():
+    enemy_group.empty()
+    item_group.empty()
+    decoration_group.empty()
+    water_group.empty()
+    exit_group.empty()
+
+    #Create emtpy tile list
+    data = []
+    for row in range (ROWS): #15 korda
+        r = [-1] * COLS #teeb järjendi 150-st -1 väärtusega tile'idest
+        data.append(r)
+    return data
+
 
 #Jätsin scale vahele
 class Player(pygame.sprite.Sprite):
@@ -254,6 +273,10 @@ class Player(pygame.sprite.Sprite):
                 if player.health < 0:
                     player.health = 0
 
+        #Check for collision with exit
+        level_complete = False
+        if pygame.sprite.spritecollide(self, exit_group, False):
+            level_complete = True
 
         #Check if fallen off the map
         if self.rect.bottom > screen_height:
@@ -274,7 +297,7 @@ class Player(pygame.sprite.Sprite):
                 self.rect.x -= dx
                 screen_scroll = -dx #kui liigub paremale siis ekraan liigub vasakule
 
-        return screen_scroll
+        return screen_scroll, level_complete
 
     def update_animation(self):
         #update animation
@@ -324,7 +347,6 @@ class Player(pygame.sprite.Sprite):
         global screen_scroll
         if self.health <= 0:
             self.health = 0
-            screen_scroll = 0
             self.speed = 0
             if self.action != 3:
                 self.update_action(3)
@@ -580,10 +602,37 @@ while running:
                 player.update_action(1) # 1 = running
             else:
                 player.update_action(0) # 0 = idle
-            screen_scroll = player.move(moving_left, moving_right)
+            screen_scroll, level_complete = player.move(moving_left, moving_right)
             bg_scroll -= screen_scroll
+            #Check if player has completed the level
+            if level_complete:
+                level += 1
+                bg_scroll = 0
+                world_data = reset_level()
+                if level <= MAX_LEVELS:
+                    with open(f"level{level}_data.csv", newline="") as csvfile:
+                        reader = csv.reader(csvfile, delimiter=",")
+                        for x, row in enumerate(reader):
+                            for y, tile in enumerate(row):
+                                world_data[x][y] = int(tile)
+                    world = World()
+                    player, health_bar = world.process_data(world_data)
+
         else:
             player.update_action(3) # 3 = loaf
+            screen_scroll = 0
+            screen.fill(DARK_GREEN)
+            
+            if restart_button.draw(screen):
+                bg_scroll = 0
+                world_data = reset_level()
+                with open(f"level{level}_data.csv", newline="") as csvfile:
+                    reader = csv.reader(csvfile, delimiter=",")
+                    for x, row in enumerate(reader):
+                        for y, tile in enumerate(row):
+                            world_data[x][y] = int(tile)
+                world = World()
+                player, health_bar = world.process_data(world_data)
 
         #Show intro
         if start_intro == True:
