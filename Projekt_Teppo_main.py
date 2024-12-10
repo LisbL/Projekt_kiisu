@@ -180,7 +180,7 @@ class Player(pygame.sprite.Sprite):
         self.frame_index = 0 #Animation is in the first frame
         self.action = 0
         self.update_time = pygame.time.get_ticks() #when the animation was last updated
-        scale = 1.3
+        scale = 1.1
 
         #idle
         temp_list = []
