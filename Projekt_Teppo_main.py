@@ -63,6 +63,11 @@ pygame.mixer.music.play(-1, 0.0, 6000) #Esimene argument = Kui mitu korda ta mä
 #Sound effects
 jump_fx = pygame.mixer.Sound("sound_effects/jump/jump_08.wav")
 jump_fx.set_volume(0.2)
+loaf_fx = pygame.mixer.Sound("sound_effects/loaf/cat_meowing.wav")
+loaf_fx.set_volume(0.2)
+loaf_fx_played = False
+mlem_fx = pygame.mixer.Sound("sound_effects/mlem/mlem.mp3")
+mlem_fx.set_volume(0.4)
 
 #Background menu image
 BG_menu = pygame.image.load("materjalid/dark forest/Preview.png").convert()
@@ -85,6 +90,9 @@ font_menu = pygame.font.Font("fondid/Pixeltype.ttf", 125)
 font_shadow = pygame.font.Font("fondid/Pixeltype.ttf", 125)
 text = font_menu.render("Teppo reis koju", True, "darkslategray")
 text_shadow = font_shadow.render("Teppo reis koju", True, "black")
+font_game_over = pygame.font.Font("fondid/Pixeltype.ttf", 125)
+game_over_text = font_game_over.render("Game over", True, "darkslategray")
+game_over_shadow = font_shadow.render("Game over", True, "black")
 #Button images
 start_img = pygame.image.load("pildid/Nupud/start_btn.png").convert_alpha()
 exit_img = pygame.image.load("pildid/Nupud/exit_btn.png").convert_alpha()
@@ -92,7 +100,7 @@ restart_img = pygame.image.load("pildid/Nupud/restart_btn.png").convert_alpha()
 
 #Muudan restardi nupu suurust eraldi
 restart_btn_height = 230
-restart_btn_width = 95
+restart_btn_width = 100
 restart_img = pygame.transform.scale(restart_img, (restart_btn_height, restart_btn_width))
 
 #create buttons
@@ -130,9 +138,9 @@ img = pygame.transform.scale(img, (TILE_SIZE, TILE_SIZE))
 img_list.append(img)
 
 #Pick_ups
-apple_img = pygame.image.load(join("materjalid", "Dekoratsioonid", "items", "Item_White5.png")).convert_alpha()
+fish_img = pygame.image.load(join("materjalid", "Collectible", "goodfish.png")).convert_alpha()
 poison_apple_img = pygame.image.load(join("materjalid", "Dekoratsioonid", "items", "Item_White6.png")).convert_alpha()
-items = { 'Health': apple_img, 'Poison': poison_apple_img}
+items = { 'Health': fish_img, 'Poison': poison_apple_img}
 
 #Funktsioonid
 def draw_text(text, font, text_col, x, y):
@@ -488,6 +496,7 @@ class ItemBox(pygame.sprite.Sprite):
         if pygame.sprite.collide_rect(self, player):
             #Check what kind of item
             if self.item_type == 'Health':
+                mlem_fx.play()
                 player.health += 25
                 if player.health > player.max_health:
                     player.health = player.max_health
@@ -626,6 +635,10 @@ while running:
                     player, health_bar = world.process_data(world_data)
 
         else:
+            if player.health <= 0:
+                if not loaf_fx_played:
+                    loaf_fx.play()
+                    loaf_fx_played = True
             player.update_action(3) # 3 = loaf
             screen_scroll = 0
             if death_fade.fade():
@@ -633,6 +646,7 @@ while running:
                     death_fade.fade_counter = 0
                     start_intro = True
                     bg_scroll = 0
+                    loaf_fx_played = False
                     world_data = reset_level()
                     with open(f"level{level}_data.csv", newline="") as csvfile:
                         reader = csv.reader(csvfile, delimiter=",")
@@ -641,6 +655,9 @@ while running:
                                 world_data[x][y] = int(tile)
                     world = World()
                     player, health_bar = world.process_data(world_data)
+                if not player.alive:
+                    screen.blit(game_over_shadow, (screen_width // 3 - 22, screen_height // 3 - 80))
+                    screen.blit(game_over_text, (screen_width // 3 - 25, screen_height // 3 - 80))
 
         #Show intro
         if start_intro == True:
