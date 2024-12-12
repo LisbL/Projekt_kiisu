@@ -44,7 +44,7 @@ SCROLL_THRESH = 200
 MAX_LEVELS = 2
 #Color variables
 GREEN = (45, 247, 61)
-DARK_GREEN = (90, 166, 123)
+DARK_GREEN = (75, 128, 102)
 RED = (232, 29, 7)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -80,7 +80,7 @@ pine5_img = pygame.image.load("materjalid/Taustad/PineForestParallax/MorningLaye
 pine5_img = pygame.transform.scale(pine5_img, (screen_width, screen_height))
 bg_color_img = pygame.image.load("materjalid/Taustad/PineForestParallax/MorningLayer6.png"). convert_alpha()
 bg_color_img = pygame.transform.scale(bg_color_img, (screen_width, screen_height))
-#Font
+#Font and text
 font_menu = pygame.font.Font("fondid/Pixeltype.ttf", 125)
 font_shadow = pygame.font.Font("fondid/Pixeltype.ttf", 125)
 text = font_menu.render("Teppo reis koju", True, "darkslategray")
@@ -90,10 +90,15 @@ start_img = pygame.image.load("pildid/Nupud/start_btn.png").convert_alpha()
 exit_img = pygame.image.load("pildid/Nupud/exit_btn.png").convert_alpha()
 restart_img = pygame.image.load("pildid/Nupud/restart_btn.png").convert_alpha()
 
+#Muudan restardi nupu suurust eraldi
+restart_btn_height = 230
+restart_btn_width = 95
+restart_img = pygame.transform.scale(restart_img, (restart_btn_height, restart_btn_width))
+
 #create buttons
 start_button = button.Button(screen_height // 2 + 205, screen_height // 2 + 30, start_img)
 exit_button = button.Button(screen_height // 2 + 205, screen_height // 2 + 180, exit_img)
-restart_button = button.Button(screen_height // 2 + 205, screen_height // 2 + 30, restart_img)
+restart_button = button.Button(screen_height // 2 + 215, screen_height // 2 + 5, restart_img)
 
 #Player action variable
 moving_left = False
