@@ -39,6 +39,7 @@ FPS = 60
 #Game variables
 start_game = False
 start_intro = False
+game_complete = False
 GRAVITY = 0.75
 SCROLL_THRESH = 200
 MAX_LEVELS = 2
@@ -93,6 +94,10 @@ text_shadow = font_shadow.render("Teppo reis koju", True, "black")
 font_game_over = pygame.font.Font("fondid/Pixeltype.ttf", 125)
 game_over_text = font_game_over.render("Game over", True, "darkslategray")
 game_over_shadow = font_shadow.render("Game over", True, "black")
+font_game_complete = pygame.font.Font("fondid/Pixeltype.ttf", 115)
+font_shadow_game_complete = pygame.font.Font("fondid/Pixeltype.ttf", 115)
+game_complete_text = font_game_complete.render("Teppo leidis oma tee koju!", True, "darkslategray")
+game_complete_shadow = font_shadow_game_complete.render("Teppo leidis oma tee koju!", True, "black")
 #Button images
 start_img = pygame.image.load("pildid/Nupud/start_btn.png").convert_alpha()
 exit_img = pygame.image.load("pildid/Nupud/exit_btn.png").convert_alpha()
@@ -595,6 +600,9 @@ while running:
         health_bar.draw(player.health)
 
         player.update()
+        if level == 2 and pygame.sprite.spritecollide(player, exit_group, False):
+            game_complete = True
+        
         player.draw()
 
         for enemy in enemy_group:
@@ -633,6 +641,12 @@ while running:
                                 world_data[x][y] = int(tile)
                     world = World()
                     player, health_bar = world.process_data(world_data)
+
+            #If game completed
+            if game_complete:
+                screen.fill(DARK_GREEN)
+                screen.blit(game_complete_shadow, (screen_width // 3 - 265, screen_height // 3 - 80))
+                screen.blit(game_complete_text, (screen_width // 3 - 268, screen_height // 3 - 80))
 
         else:
             if player.health <= 0:
