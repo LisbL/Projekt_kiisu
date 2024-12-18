@@ -654,7 +654,7 @@ while running:
                 screen.fill(DARK_GREEN)
                 screen.blit(game_complete_shadow, (screen_width // 3 - 265, screen_height // 3 - 80))
                 screen.blit(game_complete_text, (screen_width // 3 - 268, screen_height // 3 - 80))
-                screen.blit(teppo_img, (screen_width // 2 - 210, screen_height // 2 - 100))
+                screen.blit(teppo_img, (screen_width // 2 - 220, screen_height // 2 - 100))
 
         else:
             if player.health <= 0:
