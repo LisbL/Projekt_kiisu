@@ -73,6 +73,13 @@ mlem_fx.set_volume(0.4)
 #Background menu image
 BG_menu = pygame.image.load("materjalid/dark forest/Preview.png").convert()
 BG_menu = pygame.transform.scale(BG_menu, (960,540))
+
+#End screen image
+teppo_img = pygame.image.load("IRL Teppo/teppo.png").convert()
+teppo_height = 350
+teppo_width = 450
+teppo_img = pygame.transform.scale(teppo_img, (teppo_width, teppo_height))
+
 #Load background images
 pine1_img = pygame.image.load("materjalid/Taustad/PineForestParallax/MorningLayer1.png"). convert_alpha()
 pine1_img = pygame.transform.scale(pine1_img, (screen_width, screen_height))
@@ -647,6 +654,7 @@ while running:
                 screen.fill(DARK_GREEN)
                 screen.blit(game_complete_shadow, (screen_width // 3 - 265, screen_height // 3 - 80))
                 screen.blit(game_complete_text, (screen_width // 3 - 268, screen_height // 3 - 80))
+                screen.blit(teppo_img, (screen_width // 2 - 210, screen_height // 2 - 100))
 
         else:
             if player.health <= 0:
